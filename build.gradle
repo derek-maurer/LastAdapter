@@ -17,6 +17,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0"
         classpath "com.github.dcendents:android-maven-gradle-plugin:2.0"
+        // Add the maven-publish plugin for GitHub Packages
+        classpath "org.gradle:gradle-maven-publish-plugin:0.14.2"
     }
 }
 
@@ -24,9 +26,41 @@ allprojects {
     repositories {
         google()
         jcenter()
+        mavenCentral()
+        // Add JitPack for GitHub releases
+        maven { url 'https://jitpack.io' }
+        // Add GitHub Packages (optional, if you want to use it)
+        maven {
+            url = uri("https://maven.pkg.github.com/derek-maurer/LastAdapter")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+            }
+        }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+// Optional: If publishing to GitHub Packages, ensure 'maven-publish' is applied
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/derek-maurer/LastAdapter")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+            }
+        }
+    }
 }
